@@ -1,0 +1,36 @@
+#!/usr/bin/env groovy
+
+pipeline {
+    environment {
+        DOCKER_HUB_REPO = "cefis/autonomous-studios"
+        DOCKER_HUB_CREDENTIAL = "dockerhub"
+        app = ''
+    }
+    agent any
+    options { buildDiscarder(logRotator(numToKeepStr: '5')) }
+    stages {
+        stage('Build Image') {
+            steps{
+                script {
+                    app = docker.build( DOCKER_HUB_REPO + ":latest", "-f Dockerfile.prod ." )
+                }
+            }
+        }
+        stage('Push Image') {
+            steps{
+                script {
+                    docker.withRegistry( "", DOCKER_HUB_CREDENTIAL ) {
+                        // Always using the latest tag for while
+                        app.push("latest")
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            cleanWs()
+            sh 'docker rmi $(docker images --filter "dangling=true" -q --no-trunc)'
+        }
+    }
+}

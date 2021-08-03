@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  cefis-studios-app:
+    container_name: cefis-studios-app
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    networks:
+      - cefis-network
+    external_links:
+      - cefis-reverse-proxy:api-local.cefis.com.br
+      - cefis-reverse-proxy:cefis.com.br.local
+    volumes:
+      - .:/usr/src/app
+    tty: true
+
+networks:
+  cefis-network:
+    name: cefis-network
